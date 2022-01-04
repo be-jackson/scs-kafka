@@ -1,3 +1,53 @@
 spring:
   application:
     name: Spring Cloud Stream for Kafka
+  cloud.stream:
+    function.definition: sendPush;postSendSucceed;postSendFailed
+    default:
+      group: test-group
+      content-type: application/json
+      producer:
+        partition-key-expression: headers['partitionKey']
+      consumer:
+        partitioned: true
+    bindings:
+      #########################################################
+      # 푸시 발송 요청
+      #########################################################
+      push-request-out-0:
+        destination: push-request-json
+      sendPush-in-0:
+        destination: push-request-json,push-send-retry-json
+      #########################################################
+      # 푸시 전송 성공
+      #########################################################
+      push-send-succeed-out-0:
+        destination: push-send-succeed-json
+      postSendSucceed-in-0:
+        destination: push-send-succeed-json
+      #########################################################
+      # 푸시 전송 재시도
+      #########################################################
+      push-send-retry-out-0:
+        destination: push-send-retry-json
+      #postSendRetry-in-0:
+      #  destination: push-send-retry-json
+      #########################################################
+      # 푸시 전송 실패
+      #########################################################
+      push-send-failed-out-0:
+        destination: push-send-failed-json
+      postSendFailed-in-0:
+        destination: push-send-failed-json
+    kafka:
+      default.consumer:
+          auto-rebalance-enabled: true
+          ack-mode: RECORD
+          configuration:
+            max.poll.interval.ms: 600000
+      binder:
+        brokers: localhost
+        required-acks: 1
+        auto-create-topics: true
+server:
+  port: 8888
